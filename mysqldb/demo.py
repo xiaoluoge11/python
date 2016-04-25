@@ -4,7 +4,7 @@ import time, MySQLdb
      
 #连接      
 conn=MySQLdb.connect(host="localhost",user="root",passwd="root",db="test",charset="utf8")    
-cursor = conn.cursor()     ##简历游标 
+cursor = conn.cursor()     ##建立游标 
   
 #删除表  
 sql = "drop table if exists user"  
