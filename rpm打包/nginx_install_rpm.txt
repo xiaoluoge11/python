@@ -1,0 +1,254 @@
+工作目录：下载带/usr/local/src/目录下解压
+
+
+1、解决依赖关系
+
+# yum groupinstall "Development Tools" "Server Platform Deveopment"
+# yum install openssl-devel pcre-devel
+
+2、安装
+
+首先添加用户nginx，实现以之运行nginx服务进程：
+# groupadd -r nginx
+# useradd -r -g nginx nginx
+
+[root@controller ~]# cd /usr/local/src/
+[root@controller nginx-1.8.1]# pwd
+/usr/local/src/nginx-1.8.1
+
+
+接着开始编译和安装：
+# ./configure \
+  --prefix=/usr/local/nginx \
+  --sbin-path=/usr/local/nginx/sbin/nginx \
+  --conf-path=/etc/nginx/nginx.conf \
+  --error-log-path=/var/log/nginx/error.log \
+  --http-log-path=/var/log/nginx/access.log \
+  --pid-path=/var/run/nginx/nginx.pid  \
+  --lock-path=/var/lock/nginx.lock \
+  --user=nginx \
+  --group=nginx \
+  --with-http_ssl_module \
+  --with-http_flv_module \
+  --with-http_stub_status_module \
+  --with-http_gzip_static_module \
+  --http-client-body-temp-path=/var/tmp/nginx/client/ \
+  --http-proxy-temp-path=/var/tmp/nginx/proxy/ \
+  --http-fastcgi-temp-path=/var/tmp/nginx/fcgi/ \
+  --http-uwsgi-temp-path=/var/tmp/nginx/uwsgi \
+  --http-scgi-temp-path=/var/tmp/nginx/scgi \
+  --with-pcre
+# make && make install
+
+3、查看安装状态：
+[root@controller nginx-1.8.1]# /usr/local/nginx/sbin/nginx -v
+nginx version: nginx/1.8.1
+
+4、加入启动脚本：
+[root@controller nginx-1.8.1]# cat /etc/init.d/nginx 
+#!/bin/sh
+#
+# nginx - this script starts and stops the nginx daemon
+#
+# chkconfig:   - 85 15 
+# description:  Nginx is an HTTP(S) server, HTTP(S) reverse \
+#               proxy and IMAP/POP3 proxy server
+# processname: nginx
+# config:      /etc/nginx/nginx.conf
+# config:      /etc/sysconfig/nginx
+# pidfile:     /var/run/nginx.pid
+ 
+# Source function library.
+. /etc/rc.d/init.d/functions
+ 
+# Source networking configuration.
+. /etc/sysconfig/network
+ 
+# Check that networking is up.
+[ "$NETWORKING" = "no" ] && exit 0
+ 
+nginx="/usr/local/nginx/sbin/nginx"
+prog=$(basename $nginx)
+ 
+NGINX_CONF_FILE="/etc/nginx/nginx.conf"
+ 
+[ -f /etc/sysconfig/nginx ] && . /etc/sysconfig/nginx
+ 
+lockfile=/var/lock/subsys/nginx
+ 
+make_dirs() {
+   # make required directories
+   user=`nginx -V 2>&1 | grep "configure arguments:" | sed 's/[^*]*--user=\([^ ]*\).*/\1/g' -`
+   options=`$nginx -V 2>&1 | grep 'configure arguments:'`
+   for opt in $options; do
+       if [ `echo $opt | grep '.*-temp-path'` ]; then
+           value=`echo $opt | cut -d "=" -f 2`
+           if [ ! -d "$value" ]; then
+               # echo "creating" $value
+               mkdir -p $value && chown -R $user $value
+           fi
+       fi
+   done
+}
+ 
+start() {
+    [ -x $nginx ] || exit 5
+    [ -f $NGINX_CONF_FILE ] || exit 6
+    make_dirs
+    echo -n $"Starting $prog: "
+    daemon $nginx -c $NGINX_CONF_FILE
+    retval=$?
+    echo
+    [ $retval -eq 0 ] && touch $lockfile
+    return $retval
+}
+ 
+stop() {
+    echo -n $"Stopping $prog: "
+    killproc $prog -QUIT
+    retval=$?
+    echo
+    [ $retval -eq 0 ] && rm -f $lockfile
+    return $retval
+}
+ 
+restart() {
+    configtest || return $?
+    stop
+    sleep 1
+    start
+}
+ 
+reload() {
+    configtest || return $?
+    echo -n $"Reloading $prog: "
+    killproc $nginx -HUP
+    RETVAL=$?
+    echo
+}
+ 
+force_reload() {
+    restart
+}
+ 
+configtest() {
+  $nginx -t -c $NGINX_CONF_FILE
+}
+ 
+rh_status() {
+    status $prog
+}
+ 
+rh_status_q() {
+    rh_status >/dev/null 2>&1
+}
+ 
+case "$1" in
+    start)
+        rh_status_q && exit 0
+        $1
+        ;;
+    stop)
+        rh_status_q || exit 0
+        $1
+        ;;
+    restart|configtest)
+        $1
+        ;;
+    reload)
+        rh_status_q || exit 7
+        $1
+        ;;
+    force-reload)
+        force_reload
+        ;;
+    status)
+        rh_status
+        ;;
+    condrestart|try-restart)
+        rh_status_q || exit 0
+            ;;
+    *)
+        echo $"Usage: $0 {start|stop|status|restart|condrestart|try-restart|reload|force-reload|configtest}"
+        exit 2
+esac
+
+5、启动测试看是否成功：
+[root@controller src]# /etc/init.d/nginx restart
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+Stopping nginx: [  OK  ]
+Starting nginx: [  OK  ]
+
+6、切换到目录下面：
+[root@controller zabbix-3.0.3]# cd /usr/local/src/nginx-1.8.1
+[root@controller nginx-1.8.1]# pwd
+/usr/local/src/nginx-1.8.1
+
+创建安装使用到的临时目录：
+[root@controller nginx-1.8.1]# mkdir /tmp/installdir  
+
+7、将nginx安装到此目录中：
+[root@controller nginx-1.8.1]# make install DESTDIR=/tmp/installdir/ 
+[root@controller nginx-1.8.1]# cd /tmp/installdir/
+[root@controller installdir]# ls
+etc  usr  var
+
+创建服务器启动脚本：
+[root@controller installdir]# mkdir -pv etc/rc.d/init.d   
+mkdir: created directory `etc/rc.d'
+mkdir: created directory `etc/rc.d/init.d'
+[root@controller installdir]#  cp /etc/rc.d/init.d/nginx ./etc/rc.d/init.d
+
+准备rpm安装后及卸载后所需要运行的脚本：
+[root@controller installdir]# mkdir tmp;cd tmp                       
+[root@controller tmp]# vim install_after.sh
+[root@controller tmp]# cat install_after.sh     ####安装之后没有nginx用户的话就创建
+#!/bin/bash
+/usr/bin/id nginx &>/dev/null
+if [ $? -ne 0 ] ; then
+    /usr/sbin/useradd -M -s /sbin/nologin nginx
+fi  
+
+[root@controller tmp]# cat remove_after.sh 
+#!/bin/bash
+#
+source /etc/rc.d/init.d/functions 
+rm -rf /usr/local/nginx
+rm -rf /etc/nginx
+userdel nginx
+exit 0
+#此脚本是在卸载tengine时删除在安装时生成的各个目录及创建的用户
+
+8、开始打包：
+[root@controller tmp]# fpm -s dir -t rpm -n nginx -v 2.1.0 --iteration 1.el6 -C /tmp/installdir/ -p /root --description 'nginx rpm' --url 'www.xiaoluo.com' --post-install /tmp/installdir/tmp/install_after.sh --post-uninstall /tmp/installdir/tmp/remove_after.sh
+创建成功：
+Created package {:path=>"/root/nginx-2.1.0-1.el6.x86_64.rpm"}  
+
+到此已经完成：
+
+
+
+fpm安装：
+
+一、我们来先安装FPM：
+
+# FPM是Ruby模块
+yum -y install ruby rubygems ruby-devel
+# 添加淘宝的Ruby仓库
+gem sources -a https://ruby.taobao.org/
+# 移除原生的Ruby仓库
+gem sources --remove http://rubygems.org/
+# 安装fpm
+gem install fpm
+
+安装fpm ruby必须要1.9.3以上可以做如下升级：
+
+ yum update
+ yum install gcc-c++ patch readline readline-devel zlib zlib-devel
+ yum install libyaml-devel libffi-devel openssl-devel make
+ yum install bzip2 autoconf automake libtool bison iconv-devel
+ curl -L get.rvm.io | bash -s stable
+ source /etc/profile.d/rvm.sh 
+ rvm install 1.9.3
+ ruby --version
