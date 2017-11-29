@@ -1,0 +1,89 @@
+   ┊  <table id="table" data-query-params="queryParams"  
+        data-toolbar="#toolbar"  
+        data-pagination="true"  
+        data-search="true"  
+        data-show-refresh="true"  
+        data-show-toggle="true"  
+    data-show-columns="true"  
+        data-page-size="10"  
+        >               
+    </table>  
+
+
+
+
+       <link href="http://cdn.bootcss.com/bootstrap-table/1.9.1/bootstrap-table.min.css" rel="stylesheet"/> 
+        
+       <script src="http://cdn.bootcss.com/bootstrap-table/1.9.1/bootstrap-table.min.js"></script>
+       <script src="http://cdn.bootcss.com/bootstrap-table/1.9.1/locale/bootstrap-table-zh-CN.min.js"></script>
+
+
+
+    <script>
+        $(document).ready(function(){
+            /*表格属性*/
+
+            var $table = $('#table');
+            $table.bootstrapTable({
+                        url: "http://192.168.80.128:8000/item/list_authority",      
+                columns: [
+                    {
+                         title: '编号',
+                           field: 'item_id',
+                           align: 'center',
+                           valign: 'middle'
+                       
+                      
+                    },
+                    {
+                           title: '用户ID',
+                           field: 'item_userid',
+                           align: 'center',
+                           valign: 'middle',
+                       
+                      
+                    },
+                    {
+                           title: '审核人',
+                           field: 'item_pass_userid',
+                           align: 'center'
+                       
+                      
+                    },
+                    {
+                           title: '审核状态',
+                           field: 'item_status',
+                           align: 'center'
+                       
+                      
+                    },
+                    {
+                           title: '类型',
+                           field: 'item_type',
+                           align: 'center',
+                       
+                      
+                    },
+                    {
+                           title: '操作',
+                           field: 'id',
+                           align: 'center',
+                           formatter:function(value,row,index){  
+                          var e = '<a href="#" mce_href="#" onclick="edit(\''+ row.id + '\')">编辑</a> ';  
+                          var d = '<a href="#" mce_href="#" onclick="del(\''+ row.id +'\')">删除</a> ';  
+                               return e+d;  
+                           } 
+                       
+                      
+                    }
+                      
+                      
+                ]
+                                                                                                                                    
+                                                                                                                                                             
+            });
+
+        })
+###注意返回的字段要和名称一样，我们看一下返回的简单格式：
+[{"item_id": 2, "item_userid": 12, "item_pass_userid": 4, "item_status": 3, "item_type": 1}, {"item_id": 3, "item_userid": 12, "item_pass_userid": 4, "item_status": 3, "item_type": 2}, {"item_id": 7, "item_userid": 23, "item_pass_userid": 6, "item_status": 3, "item_type": 1}, {"item_id": 9, "item_userid": 23, "item_pass_userid": 6, "item_status": 3, "item_type": 3}, {"item_id": 10, "item_userid": 23, "item_pass_userid": 6, "item_status": 3, "item_type": 10}]
+
