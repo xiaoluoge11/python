@@ -1,0 +1,102 @@
+ <script src="static/vendor/jquery/jquery.min.js"></script>
+ <script src="http://static.runoob.com/assets/jquery-validation-1.14.0/lib/jquery.js"></script>
+ <script src="http://static.runoob.com/assets/jquery-validation-1.14.0/dist/jquery.validate.min.js"></script>
+ <script src="http://static.runoob.com/assets/jquery-validation-1.14.0/dist/localization/messages_zh.js"></script>
+<script type="text/javascript">
+    $.validator.setDefaults({
+submitHandler: function() {
+      alert("提交事件!");
+          
+}
+
+            });
+
+#################用在开头生效，做检测#######因为我们后面还要提交
+
+
+
+$().ready(function() {
+  $("#contents_form").validate({
+        rules: {
+          name: {                                    ###对应的是id
+            required: true,
+            isEnglish: true                          ##对应下面自定义添加的校验
+          },
+          readname: {
+            required: true,
+            isChinese: true
+          },
+         password: {
+            required: true,                         ##默认方法
+            minlength: 5
+          },
+          agent_password: {
+            required: true,
+            minlength: 5,
+            equalTo: "#password"
+          }
+        },
+        messages: {
+          name: {
+            required: "请输入用户名",
+            minlength: "用户名必需由两个字母组成"
+          },
+           readname: {
+            required: "字段不能为空",
+          },
+          password: {
+            required: "请输入密码",
+            minlength: "密码长度不能小于 5 个字母"
+          },
+          agent_password: {
+            required: "请输入密码",
+            minlength: "密码长度不能小于 5 个字母",
+            equalTo: "两次密码输入不一致"
+          }
+        } 
+});
+});
+
+jQuery.validator.addMethod("isEnglish", function(value, element) {       
+                 return this.optional(element) || /^[A-Za-z]+$/.test(value);       
+                     }, "请用英文姓名输入。"); 
+
+jQuery.validator.addMethod("isChinese", function(value, element) {       
+                 return this.optional(element) || /^[\u0391-\uFFE5]+$/.test(value);       
+                     }, "请用中文名");   
+
+###添加的自定义方法###################   
+ 
+    $(document).ready(function(){               
+   $('#contents_form').submit(function(){ 
+        var str = $('#contents_form').serialize()
+        var data={'method':"user",'formdata':str}
+        $.post('/registapi',data,function(data){ 
+            data=JSON.parse(data);   //将json串转换为对象，然后取值
+            data = JSON.parse(data['result']) //object
+            if (data['code']==0){
+               console.log("gogogo")
+                swal({
+                        title:"请一个小时内在企业微信认证", 
+                        text:"成功注册",
+                        type:"success",
+                        confirmButtonText:'确定' 
+                   },function(){ 
+                       window.location.reload();
+                 }) 
+            }
+            if (data['code']==1){
+                location.href="/blank?message="+data['result']['message']+"&"+"url_name="+data['result']['url_name']+"&"+"url="+data['result']['url']+"?"+"user_id="+data['result']['user_id']
+            }
+            if (data['code']==2){
+                swal("error","" + data['errmsg'],"error")
+             }   /*if end*/
+         })  /*post end*/
+         return false;
+})  /*submit end*/
+                  
+});
+</script>
+    
+</body>
+

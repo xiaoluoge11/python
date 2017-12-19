@@ -7,9 +7,11 @@ import json
 app = Flask(__name__)
 jsonrpc = JSONRPC(app, '/api')
 
-@jsonrpc.method('App.index')         #响应无参数传入的method
-def index():                             
-	return "hello baby!"
+@jsonrpc.method('idc.create')         #响应无参数传入的method
+def index(**kwargs):    
+    data = request.get_json()
+    print data
+    return "Helloworkd"
 
 @jsonrpc.method('App.name')         #响应有指定参数传入的method
 def name(name):
@@ -33,4 +35,4 @@ def users(**kwargs):
 
 if __name__=='__main__':
     app.debug=True
-    app.run(host='0.0.0.0',port=5001)
+    app.run(host='0.0.0.0',port=2000)
