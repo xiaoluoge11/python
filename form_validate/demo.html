@@ -2,6 +2,19 @@
  <script src="http://static.runoob.com/assets/jquery-validation-1.14.0/lib/jquery.js"></script>
  <script src="http://static.runoob.com/assets/jquery-validation-1.14.0/dist/jquery.validate.min.js"></script>
  <script src="http://static.runoob.com/assets/jquery-validation-1.14.0/dist/localization/messages_zh.js"></script>
+1、第一种实现方式，直接在代码里直接定义长度，然后js开头直接制定检查对象：
+<input type="text" class="form-control" id="upname" name="name"  minlength="2" type="text" required />
+
+##必须有name,minlength=2,required,这三个选型，然后js直接制定检查：
+$().ready(function() {
+    $("#addForm").validate();
+});
+
+###放在最前面的js即可，切记不要放最后，放最后就出问题，大坑，
+
+2、第二种方式就是直接自定义写到js里。
+
+
 <script type="text/javascript">
     $.validator.setDefaults({
 submitHandler: function() {
