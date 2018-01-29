@@ -1,0 +1,44 @@
+1、前端：
+
+   <table id ="datatable"  class="table table-bordered table-striped table-hover">
+                 <thead>
+                   <tr>
+                    <th>线路</th>
+                    <th>状态</th>
+                   </tr>
+                </thead>
+                <tbody>
+                 {% for post in data %}
+                   <tr>
+                    <td>{{ post.name }}</td>
+                    <td>{{ post.sn }}</td>
+                   </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+<ul class="pagination">
+    <li>
+        <a href="{% if pagination.has_prev %}{{url_for('.test_pg',page=pagination.page-1)}}{% else %}#{% endif %}" >«</a>
+    </li>
+        {% for p in pagination.iter_pages() %}
+            <li>
+            <a href="{{ url_for('.test_pg',page=p)}}">{{p}}</a>
+            </li>
+        {% endfor %}
+    <li>
+        <a href="{%if pagination.has_next %}{{url_for('.test_pg',page=pagination.page+1)}}{% else %}#{% endif %}" >»</a>
+    </li>
+</ul>
+
+
+
+
+2、后端：
+#test pangi
+@app.route('/test_pg', methods=['GET', 'POST'])
+def test_pg():
+    page = request.args.get('page', 1, type=int)
+    pagination = Server.query.order_by(Server.id.desc()).paginate(page,per_page=12,error_out=False)
+    data = pagination.items
+    return render_template('test_pe.html',data=data,pagination=pagination)
