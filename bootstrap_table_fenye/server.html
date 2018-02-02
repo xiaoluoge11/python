@@ -79,6 +79,19 @@ def test_item_server():
     res['total']=pagination.total
     return json.dumps(res,default = myconverter)
 
+
+##发现了一丝漏洞，我们得修改一下，如下的代码：
+  cp = request.args.get('cp',1,type=int)    ##传过来的是总的间距页数
+    pageSize = request.args.get('ps', type=int) ##传过来的是第几页
+    if cp == int(0):
+        page=1
+    else:
+        page = (cp/pageSize) + 1
+
+
+
+
+
 ######返回的代码由一些构成：
 {
   'page':1  ##标签
