@@ -1,0 +1,74 @@
+假如已经存在数据结构直接操作：
+from app.models import User
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+engine = create_engine('mysql://root:123456@localhost/devops')
+DBSession = sessionmaker(bind=engine)
+session = DBSession()
+print session.query(User).all()
+
+2、在flask初始化db情况下查询：
+data = Idc.query.all()
+db.session.close()
+res=process_result(data,[]) 
+
+##process_result格式化输出到字典：
+def process_result(data, output):
+    black = ["_sa_instance_state"]    
+    ret = []    
+    for obj in data:
+        print obj
+        if output:   
+            tmp = {}  
+            for f in output:
+                tmp[f] = getattr(obj, f)
+            ret.append(tmp)
+        else:    
+            tmp = obj.__dict__ 
+            for p in black: 
+                try:    
+                    tmp.pop(p)
+                except:  
+                    pass 
+            ret.append(tmp)
+    return ret
+
+##假如要输出固定字段，在process_result(data,[]) 里面定义，比如:
+data = process_result(data,['name','ip'])
+
+##返回结果：
+[{'name':'xiaoluo','ip':'192.168.10.100'}] 
+
+3、查询单个数据：
+obj = Idc.query.filter_by(id=where['id']).all()
+db.session.close()
+res = process_result(obj,[])[0]
+
+4、删除：
+obj = Idc.query.filter_by(id=where['id']).first()
+db.session.delete(obj)
+
+5、添加数据、规范：在插入的时候安装字典插入，[{'name':'xiaoluo','ip':'192.168.10.100'}]
+data = [{'name':'xiaoluo','ip':'192.168.10.100'}]
+db.session.execute(Idc.__table__.insert(),data)
+db.session.commit()
+
+6、更新也是以字典传入：
+data = {'name':'xiaoluo','ip':'192.168.10.100'}
+ret = db.session.query(Idc).filter_by(id=where['id']).update(data) 
+db.session.commit()
+
+7、单个模糊查询,加分页：
+pagination = Server.query.filter(Server.sn.like('%' + sn + '%')).paginate(page,per_page=pageSize,error_out=False)
+data = pagination.items
+data_result = process_result(data, ['id','idc_id','cabinet_id','cabinet_pos','name','sn','mana_ip','product_ip','innet_ip','power','port_to_switch'])
+
+8、多个模糊查询：
+pagination = Server.query.filter_by(Server.sn.like('%' + sn + '%') and Server.mana_ip.like('%' + ip + '%')).paginate(page,per_page=pageSize,error_out=False)
+data = pagination.items
+
+
+
+
+ 
+
