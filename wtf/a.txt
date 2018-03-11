@@ -1,0 +1,58 @@
+1、form文件编写:
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
+from flask_wtf import FlaskForm
+from wtforms import StringField, PasswordField, validators, IntegerField, SelectField, SelectMultipleField,widgets, HiddenField, FieldList, TextAreaField,BooleanField
+from wtforms.validators import DataRequired, NumberRange, Optional, InputRequired, Regexp
+import json
+
+class SvnAccount(FlaskForm):
+    form_name = "svnaccount"
+    form_name_ch = "SVN帐号"
+    tag = HiddenField('TAG', render_kw={"style":"width:250px", "class":"form-control", "readonly":"readonly"}, default="SVNAccount")
+    svn_name = StringField('SVN用户名', render_kw={"style":"width:500px", "class":"form-control", "readonly":"readonly"})
+    comment = StringField('说明', render_kw={"style":"width:500px", "class":"form-control"})
+
+
+
+2、返回的数据：
+@app.route('/apply_form',methods=['POST','GET'])
+@auth_login
+def apply_form():
+    username = session['username']
+    name = None
+    nameForm = SvnAccount()
+    if nameForm.validate_on_submit():
+        svn_name = nameForm.svn_name.data
+    return  render_template('apply_form.html',form=nameForm,username=username)
+
+
+3、页面返回详情：
+<div class="col-lg-6" >
+                                  <form role="form" id="1">
+                                             {{ form.hidden_tag() }}
+                                            <div class="form-group">
+                                                <label for="disabledSelect">审核人</label>
+                                                 <select id="disabledSelect" class="form-control" id="apply_userid" name="apply_userid">
+                                                    <option>Disabled select</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="disabledSelect">{{ form.svn_name.label }}</label>
+                                                {{ form.svn_name(value=username ) }}
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="disabledSelect">{{ form.comment.label }}</label>
+                                                {{ form.comment() }}
+                                            </div>
+                                            <button type="submit" class="btn btn-primary">提交</button>
+                                            <button type="submit" class="btn btn-primary">返回</button>
+                                    </form>
+
+##原来的from格式不变，改变的只是input表单，
+form.svn_name.label表述标签名称。form.svn_name()表述具体的input
+(value=username )#表述默认值
+
